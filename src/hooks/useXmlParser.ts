@@ -41,12 +41,22 @@ const useXmlParser = () => {
         const receptor = comprobante?.Receptor;
         const conceptos = comprobante?.Conceptos?.Concepto || [];
         const impuestos = comprobante?.Impuestos?.Traslados?.Traslado || [];
+        const fechaISO = comprobante?.Fecha;
+        
+        const fechaFormateada = fechaISO
+        ? new Date(fechaISO).toLocaleDateString('es-MX', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+          })
+        : 'N/A'; // Extraer la fecha del XML
 
         console.log('Comprobante:', comprobante); // Log del comprobante
         console.log('Emisor:', emisor); // Log del emisor
         console.log('Receptor:', receptor); // Log del receptor
         console.log('Conceptos:', conceptos); // Log de los conceptos
         console.log('Impuestos:', impuestos); // Log de los impuestos
+        console.log('Fecha:', fechaISO); // Log de la fecha
 
         // Convertir conceptos a un array si no lo es
         const conceptosArray = Array.isArray(conceptos) ? conceptos : [conceptos];
@@ -55,6 +65,7 @@ const useXmlParser = () => {
         const impuestosArray = Array.isArray(impuestos) ? impuestos : [impuestos];
 
         return {
+            fecha: fechaFormateada, 
             emisor: {
                 nombre: emisor?.Nombre || 'N/A',
                 rfc: emisor?.Rfc || 'N/A',
@@ -68,14 +79,15 @@ const useXmlParser = () => {
                 cantidad: concepto?.Cantidad || 'N/A',
                 valorUnitario: concepto?.ValorUnitario || 'N/A',
                 importe: concepto?.Importe || 'N/A',
-                impuestos: concepto?.Impuestos?.Traslados?.Traslado || [],
             })),
             impuestos: impuestosArray.map((impuesto: any) => ({
                 impuesto: impuesto?.Impuesto || 'N/A',
                 importe: impuesto?.Importe || 'N/A',
             })),
+            total: comprobante?.Total || 'N/A', // Incluir el total del XML
         };
     };
+
 
     return { xmlData, error, handleFileUpload, getDetails };
 };

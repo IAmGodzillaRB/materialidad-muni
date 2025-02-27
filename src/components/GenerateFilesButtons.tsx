@@ -9,6 +9,7 @@ const GenerateFilesButtons: React.FC = () => {
     const handleGenerateWord = () => {
         if (xmlData) {
             const details = {
+                fecha: xmlData.Comprobante.Fecha,
                 emisor: {
                     nombre: xmlData.Comprobante.Emisor.Nombre,
                     rfc: xmlData.Comprobante.Emisor.Rfc,

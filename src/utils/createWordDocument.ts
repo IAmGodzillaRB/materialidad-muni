@@ -1,6 +1,7 @@
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType } from 'docx';
 
 interface XmlData {
+    fecha: string;
     emisor: {
         nombre: string;
         rfc: string;
@@ -24,7 +25,7 @@ interface XmlData {
 
 const createWordDocument = (xmlData: XmlData) => {
     // Extraer datos del XML
-    const { emisor, receptor, conceptos, impuestos, total } = xmlData;
+    const { fecha, emisor, conceptos, impuestos, total } = xmlData;
 
     // Crear el contenido del documento
     const doc = new Document({
@@ -35,7 +36,7 @@ const createWordDocument = (xmlData: XmlData) => {
                     new Paragraph({
                         children: [
                             new TextRun({
-                                text: "Oaxaca de Juárez, Oaxaca; a 06 de enero de 2022.",
+                                text: `Oaxaca de Juárez, Oaxaca; a ${fecha}.`,
                                 bold: true,
                             }),
                         ],
@@ -54,7 +55,7 @@ const createWordDocument = (xmlData: XmlData) => {
                     new Paragraph({
                         children: [
                             new TextRun({
-                                text: "COMITÉ DE ADQUISICIONES, ENAJENACIONES, ARRENDAMIENTOS,",
+                                text: "SANTA MARÍA HUATULCO,",
                                 bold: true,
                             }),
                         ],
@@ -62,31 +63,7 @@ const createWordDocument = (xmlData: XmlData) => {
                     new Paragraph({
                         children: [
                             new TextRun({
-                                text: "PRESTACIÓN DE SERVICIOS Y ADMINISTRACIÓN DE BIENES",
-                                bold: true,
-                            }),
-                        ],
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({
-                                text: "MUEBLES E INMUEBLES PARA EL EJERCICIO FISCAL DOS",
-                                bold: true,
-                            }),
-                        ],
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({
-                                text: "MIL VEINTITRÉS DEL MUNICIPIO DE SANTA CRUZ AMILPAS,",
-                                bold: true,
-                            }),
-                        ],
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({
-                                text: "DISTRITO CENTRO, OAXACA.",
+                                text: "C. José Antonio Pérez",
                                 bold: true,
                             }),
                         ],
@@ -251,7 +228,7 @@ const createWordDocument = (xmlData: XmlData) => {
         link.href = URL.createObjectURL(blob);
         link.download = 'Cotizacion_BENFUEN.docx';
         link.click();
-    });
+    }); 
 };
 
 export default createWordDocument;

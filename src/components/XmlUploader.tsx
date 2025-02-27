@@ -20,6 +20,7 @@ const XmlUploader: React.FC = () => {
     const handleGenerateWord = () => {
         if (details) {
             const wordData = {
+                fecha: details.fecha, // Usar la fecha extraída del XML
                 emisor: {
                     nombre: details.emisor.nombre,
                     rfc: details.emisor.rfc,
@@ -30,7 +31,7 @@ const XmlUploader: React.FC = () => {
                 },
                 conceptos: details.conceptos,
                 impuestos: details.impuestos,
-                total: "85,000.00", // Aquí puedes calcular el total si es necesario
+                total: details.total, // Usar el total extraído del XML
             };
             createWordDocument(wordData); // Llamar a la función
         } else {
