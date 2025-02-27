@@ -4,13 +4,13 @@ import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
 // Configuración de Firebase para tu aplicación web
 const firebaseConfig = {
-  apiKey: "AIzaSyBA5Y8cl4_IKNXEcR0dPqNSg2LPbFcuQq8",
-  authDomain: "materialidad-municipal.firebaseapp.com",
-  projectId: "materialidad-municipal",
-  storageBucket: "materialidad-municipal.firebasestorage.app",
-  messagingSenderId: "166422484968",
-  appId: "1:166422484968:web:54efcc2ee11084268ab65d",
-  measurementId: "G-DFYETGBW8K"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Inicializa Firebase
