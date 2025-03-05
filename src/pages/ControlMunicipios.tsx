@@ -1,47 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Input, Button, Tooltip, notification } from 'antd';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Table, Input, Button, Tooltip, notification, Image, Modal } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import MunicipioModal from '../components/modals/MunicipioModal';
-import {
-    fetchDocuments,
-    createDocument,
-    updateDocument,
-    deleteDocument,
-} from '../services/firestoreService'; // Importa el servicio genérico
+import { fetchDocuments, createDocument, updateDocument } from '../services/firestoreService';
 
 interface Municipio {
     id: string;
-    nombre: string;
     rfc: string;
-    direccion: string;
+    denominacion: string;
     codigoPostal: string;
+    nombreVialidad: string;
+    numeroInterior?: string;
+    nombreLocalidad: string;
+    entidadFederativa: string;
+    tipoVialidad?: string;
+    numeroExterior: string;
+    nombreColonia?: string;
+    municipio: string;
+    entreCalle?: string;
+    otraCalle?: string;
+    imagen?: string;
+    fechaCreacion: string;
+    eliminado?: boolean; 
 }
+
+const initialFormData: Municipio = {
+    id: '',
+    rfc: '', 
+    denominacion: '',
+    codigoPostal: '',
+    nombreVialidad: '',
+    nombreLocalidad: '',
+    entidadFederativa: '',
+    numeroExterior: '',
+    municipio: '',
+    fechaCreacion: '',
+};
 
 const ControlMunicipios: React.FC = () => {
     const [openAddModal, setOpenAddModal] = useState<boolean>(false);
     const [openEditModal, setOpenEditModal] = useState<boolean>(false);
     const [allMunicipios, setAllMunicipios] = useState<Municipio[]>([]);
     const [filteredMunicipios, setFilteredMunicipios] = useState<Municipio[]>([]);
-    const [formData, setFormData] = useState({
-        id: '',
-        nombre: '',
-        rfc: '',
-        direccion: '',
-        codigoPostal: '',
-    });
+    const [formData, setFormData] = useState<Municipio>(initialFormData);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [modalLoading, setModalLoading] = useState<boolean>(false);
 
+    // Función para limpiar campos undefined o vacíos
+    const cleanDocumentData = useCallback((data: Partial<Municipio>): Partial<Municipio> => {
+        return Object.fromEntries(
+            Object.entries(data).filter(([_, value]) => value !== undefined && value !== '')
+        );
+    }, []);
+
     // Obtener todos los municipios
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         setError(null);
 
         try {
-            const municipios = await fetchDocuments('municipios') as Municipio[];
-            setAllMunicipios(municipios);
-            setFilteredMunicipios(municipios);
+            const municipios = await fetchDocuments('municipios', '') as Municipio[];
+            // Filtrar solo los municipios no eliminados
+            const municipiosActivos = municipios.filter(municipio => !municipio.eliminado);
+            setAllMunicipios(municipiosActivos);
+            setFilteredMunicipios(municipiosActivos);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
             setError(errorMessage);
@@ -49,20 +72,26 @@ const ControlMunicipios: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [fetchData]);
 
     // Agregar un nuevo municipio
-    const handleAddMunicipio = async (values: any) => {
+    const handleAddMunicipio = useCallback(async (values: Municipio) => {
         try {
             setModalLoading(true);
-            await createDocument('municipios', values); // Usa el servicio genérico
+
+            // Asignar fecha de creación automáticamente
+            values.fechaCreacion = new Date().toISOString();
+
+            // Limpiar datos antes de enviar a Firestore
+            const cleanedData = cleanDocumentData(values);
+
+            await createDocument('municipios', cleanedData);
             await fetchData();
             showNotification('success', 'Éxito', 'Municipio creado correctamente.');
-            setFormData({ id: '', nombre: '', rfc: '', direccion: '', codigoPostal: '' });
             setOpenAddModal(false);
         } catch (error: any) {
             console.error('Error al crear municipio:', error);
@@ -70,16 +99,31 @@ const ControlMunicipios: React.FC = () => {
         } finally {
             setModalLoading(false);
         }
-    };
+    }, [cleanDocumentData, fetchData]);
 
     // Editar un municipio existente
-    const handleEditMunicipio = async (values: any) => {
+    const handleEditMunicipio = useCallback(async (values: Municipio) => {
         try {
             setModalLoading(true);
-            await updateDocument('municipios', values.id, values); // Usa el servicio genérico
+
+            // Verificar que el ID esté presente
+            if (!values.id) {
+                throw new Error("El ID del municipio no está definido.");
+            }
+
+            // Limpiar datos antes de enviar a Firestore
+            const cleanedData = cleanDocumentData(values);
+
+            // Actualizar el documento en Firestore
+            await updateDocument('municipios', values.id, cleanedData);
+
+            // Actualizar la tabla
             await fetchData();
+
+            // Mostrar notificación de éxito
             showNotification('success', 'Éxito', 'Municipio actualizado correctamente.');
-            setFormData({ id: '', nombre: '', rfc: '', direccion: '', codigoPostal: '' });
+
+            // Cerrar el modal de edición
             setOpenEditModal(false);
         } catch (error: any) {
             console.error('Error al actualizar municipio:', error);
@@ -87,63 +131,128 @@ const ControlMunicipios: React.FC = () => {
         } finally {
             setModalLoading(false);
         }
-    };
+    }, [cleanDocumentData, fetchData]);
 
-    // Eliminar un municipio
-    const handleDelete = async (id: string) => {
-        try {
-            await deleteDocument('municipios', id); // Usa el servicio genérico
-            await fetchData();
-            showNotification('success', 'Éxito', 'Municipio eliminado correctamente.');
-        } catch (error: any) {
-            console.error('Error al eliminar municipio:', error);
-            showNotification('error', 'Error al eliminar municipio', error.message);
-        }
-    };
+    // Eliminar un municipio (mover a papelera)
+    const handleDelete = useCallback(async (id: string) => {
+        Modal.confirm({
+            title: '¿Estás seguro de eliminar este municipio?',
+            content: 'El municipio se moverá a la papelera y no se eliminará permanentemente.',
+            okText: 'Sí, mover a papelera',
+            cancelText: 'Cancelar',
+            onOk: async () => {
+                try {
+                    // Marcar el municipio como eliminado
+                    await updateDocument('municipios', id, { eliminado: true });
+                    await fetchData();
+                    showNotification('success', 'Éxito', 'Municipio movido a la papelera.');
+                } catch (error: any) {
+                    console.error('Error al mover a papelera:', error);
+                    showNotification('error', 'Error al mover a papelera', error.message);
+                }
+            },
+        });
+    }, [fetchData]);
 
     // Función para mostrar notificaciones
-    const showNotification = (type: 'success' | 'error', message: string, description?: string) => {
+    const showNotification = useCallback((type: 'success' | 'error', message: string, description?: string) => {
         notification[type]({
             message,
             description,
         });
-    };
+    }, []);
 
     // Función para buscar municipios
-    const handleSearch = (searchTerm: string) => {
+    const handleSearch = useCallback((searchTerm: string) => {
         const filtered = allMunicipios.filter(
             (municipio) =>
-                municipio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                municipio.rfc.toLowerCase().includes(searchTerm.toLowerCase())
+                municipio.denominacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                municipio.rfc.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                municipio.municipio.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setFilteredMunicipios(filtered);
-    };
+    }, [allMunicipios]);
 
-    // Columnas de la tabla
-    const columns = [
+    // Columnas de la tabla (memorizadas)
+    const columns = useMemo(() => [
         {
-            title: 'Nombre',
-            dataIndex: 'nombre',
-            key: 'nombre',
+            title: 'Denominación Social',
+            dataIndex: 'denominacion',
+            key: 'denominacion',
+            width: 200,
+            render: (text: string) => <strong>{text}</strong>,
         },
         {
             title: 'RFC',
             dataIndex: 'rfc',
             key: 'rfc',
+            width: 150,
+            render: (text: string) => <div className="text-gray-500 text-sm">RFC: {text}</div>,
         },
         {
             title: 'Dirección',
-            dataIndex: 'direccion',
             key: 'direccion',
+            render: (_text: string, record: Municipio) => (
+                <div>
+                    <div>{record.tipoVialidad} {record.nombreVialidad} #{record.numeroExterior} 
+                        {record.numeroInterior && ` Int. ${record.numeroInterior}`}
+                    </div>
+                    <div className="text-gray-500 text-sm">
+                        Col. {record.nombreColonia || 'N/A'}, CP {record.codigoPostal}
+                    </div>
+                    <div className="text-gray-500 text-sm">
+                        {record.municipio}, {record.entidadFederativa}
+                    </div>
+                </div>
+            ),
         },
         {
-            title: 'Código Postal',
-            dataIndex: 'codigoPostal',
-            key: 'codigoPostal',
+            title: 'Información Adicional',
+            key: 'informacionAdicional',
+            render: (_text: string, record: Municipio) => (
+                <div>
+                    <div>Localidad: {record.nombreLocalidad}</div>
+                    {record.entreCalle && <div>Entre calles: {record.entreCalle} y {record.otraCalle}</div>}
+                </div>
+            ),
+        },
+        {
+            title: 'Imagen',
+            dataIndex: 'imagen',
+            key: 'imagen',
+            width: 150,
+            render: (imagen: string) => (
+                <Image
+                    src={imagen}
+                    alt="Imagen del municipio"
+                    width={120}
+                    height={120}
+                    style={{ objectFit: 'cover', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                    preview={{ mask: <div className="flex items-center justify-center text-white">Ver imagen</div> }}
+                    placeholder={
+                        <div className="flex items-center justify-center bg-gray-200 w-full h-full" style={{ height: '120px', width: '120px' }}>
+                            Sin imagen
+                        </div>
+                    }
+                />
+            ),
+        },
+        {
+            title: 'Fecha de Creación',
+            dataIndex: 'fechaCreacion',
+            key: 'fechaCreacion',
+            width: 150,
+            render: (date: string) => {
+                const formattedDate = new Date(date).toLocaleDateString('es-MX', {
+                    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                return <div>{formattedDate}</div>;
+            },
         },
         {
             title: 'Acciones',
             key: 'actions',
+            width: 100,
             render: (record: Municipio) => (
                 <div className="flex space-x-2">
                     <Tooltip title="Editar municipio">
@@ -169,7 +278,7 @@ const ControlMunicipios: React.FC = () => {
                 </div>
             ),
         },
-    ];
+    ], [handleDelete]);
 
     return (
         <div className="flex justify-center h-screen bg-gray-100">
@@ -185,17 +294,17 @@ const ControlMunicipios: React.FC = () => {
 
                 <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-6">
                     <Input
-                        placeholder="Buscar por nombre o RFC"
+                        placeholder="Buscar por denominación, RFC o municipio"
                         className="w-full md:w-1/3"
                         onChange={(e) => handleSearch(e.target.value)}
-                        aria-label="Buscar municipios por nombre o RFC"
+                        aria-label="Buscar municipios"
                     />
                     <div className="flex space-x-2 mt-4 md:mt-0">
                         <Button
                             type="primary"
                             icon={<PlusOutlined />}
                             onClick={() => {
-                                setFormData({ id: '', nombre: '', rfc: '', direccion: '', codigoPostal: '' });
+                                setFormData(initialFormData);
                                 setOpenAddModal(true);
                             }}
                             aria-label="Agregar nuevo municipio"
@@ -227,7 +336,7 @@ const ControlMunicipios: React.FC = () => {
                     open={openAddModal}
                     onClose={() => setOpenAddModal(false)}
                     onSubmit={handleAddMunicipio}
-                    formData={{ id: '', nombre: '', rfc: '', direccion: '', codigoPostal: '' }}
+                    formData={initialFormData}
                     isEditMode={false}
                     loading={modalLoading}
                 />

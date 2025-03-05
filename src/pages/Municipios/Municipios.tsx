@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Input, Card, Row, Col, notification, Spin } from 'antd'; // Importar Spin
+import { Input, Card, Row, Col, notification, Spin, Image } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { fetchDocuments } from '../../services/firestoreService';
+import { normalizaDenominacion } from '../../utils/normalizaDenominacion';
 
 interface Municipio {
   id: string;
-  nombre: string;
+  denominacion: string;
   rfc: string;
   direccion: string;
   codigoPostal: string;
+  imagen?: string;
+  eliminado?: boolean;
 }
 
 const Municipios: React.FC = () => {
@@ -18,23 +21,16 @@ const Municipios: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // Función para normalizar el nombre
-  const normalizeName = (name: string): string => {
-    return name
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '');
-  };
-
   // Obtener todos los municipios
   const fetchData = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const municipios = await fetchDocuments('municipios') as Municipio[];
-      setAllMunicipios(municipios);
-      setFilteredMunicipios(municipios);
+      const municipios = await fetchDocuments<Municipio>('municipios', '') as Municipio[];
+      const municipiosActivos = municipios.filter(municipio => !municipio.eliminado);
+      setAllMunicipios(municipiosActivos);
+      setFilteredMunicipios(municipiosActivos);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       setError(errorMessage);
@@ -60,17 +56,18 @@ const Municipios: React.FC = () => {
   const handleSearch = (searchTerm: string) => {
     const filtered = allMunicipios.filter(
       (municipio) =>
-        municipio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        municipio.denominacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
         municipio.rfc.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredMunicipios(filtered);
   };
 
-  // Navegar a la página de detalles del municipio usando el nombre
-  const handleVerDetalles = (nombre: string) => {
-    const normalizedName = normalizeName(nombre); // Normalizar el nombre
-    navigate(`/home/municipios/${normalizedName}`);
+  // Navegar a la página de detalles del municipio
+  const handleVerDetalles = (denominacion: string) => {
+    navigate(`/home/municipios/${encodeURIComponent(normalizaDenominacion(denominacion))}`);
   };
+  
+  
 
   return (
     <div className="flex justify-center h-screen bg-gray-100">
@@ -86,10 +83,10 @@ const Municipios: React.FC = () => {
 
         <div className="flex flex-col md:flex-row justify-between items-center mb-6">
           <Input
-            placeholder="Buscar por nombre o RFC"
+            placeholder="Buscar por denominacion o RFC"
             className="w-full md:w-1/3"
             onChange={(e) => handleSearch(e.target.value)}
-            aria-label="Buscar municipios por nombre o RFC"
+            aria-label="Buscar municipios por denominacion o RFC"
             style={{ maxWidth: '400px' }}
           />
         </div>
@@ -100,13 +97,27 @@ const Municipios: React.FC = () => {
             {filteredMunicipios.map((municipio) => (
               <Col key={municipio.id} xs={24} sm={12} md={8} lg={6}>
                 <Card
-                  title={municipio.nombre}
+                  hoverable
+                  cover={
+                    <Image
+                      src={municipio.imagen || 'https://via.placeholder.com/150'}
+                      alt={municipio.denominacion}
+                      height={150}
+                      style={{ objectFit: 'cover' }}
+                      preview={false}
+                    />
+                  }
                   className="shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-                  onClick={() => handleVerDetalles(municipio.nombre)} // Usar el nombre en la URL
+                  onClick={() => handleVerDetalles(municipio.denominacion)} // Navegar al hacer clic
                 >
-                  <p><strong>RFC:</strong> {municipio.rfc}</p>
-                  <p><strong>Dirección:</strong> {municipio.direccion}</p>
-                  <p><strong>Código Postal:</strong> {municipio.codigoPostal}</p>
+                  <Card.Meta
+                    title={municipio.denominacion}
+                    description={
+                      <div>
+                        <p><strong>RFC:</strong> {municipio.rfc}</p>
+                      </div>
+                    }
+                  />
                 </Card>
               </Col>
             ))}

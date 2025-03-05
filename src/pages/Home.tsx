@@ -6,7 +6,8 @@ import { Button } from 'antd';
 import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
 import Municipios from './Municipios/Municipios';
 import ControlMunicipios from './ControlMunicipios';
-import DetalleMunicipio from './Municipios/[nombre]';
+import DetalleMunicipio from './Municipios/DetalleMunicipio';
+import Autoridades from './Municipios/Autoridades';
 
 
 const Home: React.FC = () => {
@@ -171,9 +172,13 @@ const Home: React.FC = () => {
         <div className="p-2">
           <Routes>
             <Route index element={<h1 className="text-2xl font-bold">Bienvenido al Dashboard</h1>} />
-            <Route path="municipios" element={<Municipios />} />
-            <Route path="municipios/:nombre" element={<DetalleMunicipio />} /> {/* Usar el nombre en la URL */}
             <Route path="control-municipios" element={<ControlMunicipios />} />
+            <Route path="municipios">
+              <Route index element={<Municipios />} />
+              <Route path=":denominacion" element={<DetalleMunicipio />} />
+              <Route path=":denominacion/autoridades" element={<Autoridades />} />
+            </Route>
+          
           </Routes>
         </div>
       </main>
