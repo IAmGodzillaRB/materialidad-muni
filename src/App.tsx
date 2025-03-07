@@ -7,7 +7,6 @@ const App: React.FC = () => {
     <div className="app">
       <main>
         <AppRouter />
-        
       </main>
     </div>
   );

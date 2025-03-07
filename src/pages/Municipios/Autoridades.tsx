@@ -1,8 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { Table, Input, Button, Tooltip, notification, Modal, Form, Space } from 'antd';
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { fetchDocuments, createDocument, updateDocument, deleteDocument } from '../../services/firestoreService';
-import { notification, Spin, Button, Modal, Form, Input, Table } from 'antd';
 import { normalizaDenominacion } from '../../utils/normalizaDenominacion';
+
+interface Municipio {
+  id: string;
+  denominacion: string;
+  autoridadesRef?: string[];
+}
 
 interface Autoridad {
   id?: string;
@@ -11,263 +18,156 @@ interface Autoridad {
   telefono: string;
 }
 
-interface Municipio {
-  id: string;
-  denominacion: string;
-  autoridadesRef?: string[]; // Array de referencias a autoridades
-}
+const initialFormData: Autoridad = {
+  nombre: '',
+  puesto: '',
+  telefono: '',
+};
 
 const Autoridades: React.FC = () => {
-  const { denominacion } = useParams<{ denominacion: string }>(); // Obtener el parámetro de la URL
+  const { denominacion } = useParams<{ denominacion: string }>();
+  const [nombreMunicipio, setNombreMunicipio] = useState<string>('');
+  const [municipioId, setMunicipioId] = useState<string>('');
   const [autoridades, setAutoridades] = useState<Autoridad[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [editingAutoridad, setEditingAutoridad] = useState<Autoridad | null>(null);
-  const [nombreMunicipio, setNombreMunicipio] = useState<string>(''); // Estado para el nombre del municipio
   const [form] = Form.useForm();
+  const [editingAutoridad, setEditingAutoridad] = useState<Autoridad | null>(null);
 
-  // Normalizar la denominación obtenida de la URL
-  const denominacionNormalizada = normalizaDenominacion(decodeURIComponent(denominacion || ''));
-
-  // Obtener las autoridades del municipio
   useEffect(() => {
-    const fetchData = async () => {
+    if (!denominacion) {
+      notification.error({ message: 'Error', description: 'No se pudo obtener la denominación del municipio.' });
+      return;
+    }
+
+    const fetchMunicipioYAutoridades = async () => {
       try {
-        // Obtener el municipio correspondiente
-        const municipios = await fetchDocuments<Municipio>('municipios', '');
-        const municipio = municipios.find(
-          (m: Municipio) => normalizaDenominacion(m.denominacion) === denominacionNormalizada
+        const fetchedMunicipios = await fetchDocuments<Municipio>('municipios', '');
+        const municipioSeleccionado = fetchedMunicipios.find(
+          (m) => normalizaDenominacion(m.denominacion) === normalizaDenominacion(decodeURIComponent(denominacion))
         );
 
-        if (municipio) {
-          // Guardar el nombre del municipio en el estado
-          setNombreMunicipio(municipio.denominacion);
+        if (municipioSeleccionado) {
+          setNombreMunicipio(municipioSeleccionado.denominacion);
+          setMunicipioId(municipioSeleccionado.id);
 
-          if (municipio.autoridadesRef) {
-            // Obtener las autoridades referenciadas en el municipio
-            const autoridadesFetched = await Promise.all(
-              municipio.autoridadesRef.map(async (ref: string) => {
+          if (municipioSeleccionado.autoridadesRef) {
+            const autoridadesData = await Promise.all(
+              municipioSeleccionado.autoridadesRef.map(async (ref) => {
                 const autoridad = await fetchDocuments<Autoridad>('autoridades', ref);
-                return autoridad;
+                return { id: ref, ...autoridad[0] };
               })
             );
-            setAutoridades(autoridadesFetched.flat());
+            setAutoridades(autoridadesData);
           }
         } else {
-          throw new Error('Municipio no encontrado');
+          notification.warning({ message: 'Advertencia', description: 'El municipio no existe.' });
         }
       } catch (error) {
-        console.error('Error al cargar autoridades:', error);
-        notification.error({
-          message: 'Error',
-          description: 'No se pudieron cargar las autoridades.',
-        });
+        notification.error({ message: 'Error', description: 'No se pudo cargar la información del municipio.' });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [denominacionNormalizada]);
+    fetchMunicipioYAutoridades();
+  }, [denominacion]);
 
-  // Función para abrir el modal (crear o editar)
   const showModal = (autoridad: Autoridad | null = null) => {
     setEditingAutoridad(autoridad);
-    form.setFieldsValue(autoridad || { nombre: '', puesto: '', telefono: '' });
+    form.setFieldsValue(autoridad || initialFormData);
     setIsModalVisible(true);
   };
 
-  // Función para cerrar el modal
   const handleCancel = () => {
     setIsModalVisible(false);
-    form.resetFields();
     setEditingAutoridad(null);
+    form.resetFields();
   };
 
-  // Función para guardar o actualizar una autoridad
   const handleSave = async (values: Autoridad) => {
     try {
-      if (editingAutoridad) {
-        // Actualizar autoridad
-        await updateDocument<Autoridad>('autoridades', editingAutoridad.id!, values);
-        notification.success({
-          message: 'Éxito',
-          description: 'Autoridad actualizada correctamente.',
-        });
+      if (!municipioId) throw new Error('Municipio ID es undefined');
+
+      if (editingAutoridad && editingAutoridad.id) {
+        await updateDocument('autoridades', editingAutoridad.id, values);
+        notification.success({ message: 'Éxito', description: 'Autoridad actualizada correctamente.' });
       } else {
-        // Crear nueva autoridad
-        const nuevaAutoridadRef = await createDocument<Autoridad>('autoridades', values);
-
-        // Obtener el municipio correspondiente
-        const municipios = await fetchDocuments<Municipio>('municipios', '');
-        const municipio = municipios.find(
-          (m: Municipio) => normalizaDenominacion(m.denominacion) === denominacionNormalizada
-        );
-
-        if (municipio) {
-          // Actualizar el municipio para agregar la referencia de la nueva autoridad
-          const nuevasReferencias = [...(municipio.autoridadesRef || []), nuevaAutoridadRef];
-          await updateDocument('municipios', municipio.id, { autoridadesRef: nuevasReferencias });
-        }
-
-        notification.success({
-          message: 'Éxito',
-          description: 'Autoridad agregada correctamente.',
-        });
+        const nuevaAutoridadRef = await createDocument('autoridades', values);
+        const municipio = await fetchDocuments<Municipio>('municipios', municipioId);
+        const nuevasReferencias = [...(municipio[0].autoridadesRef || []), nuevaAutoridadRef];
+        await updateDocument('municipios', municipioId, { autoridadesRef: nuevasReferencias });
+        notification.success({ message: 'Éxito', description: 'Autoridad creada correctamente.' });
       }
 
-      // Recargar la lista de autoridades
-      const municipios = await fetchDocuments<Municipio>('municipios', '');
-      const municipio = municipios.find(
-        (m: Municipio) => normalizaDenominacion(m.denominacion) === denominacionNormalizada
+      const municipio = await fetchDocuments<Municipio>('municipios', municipioId);
+      const autoridadesData = await Promise.all(
+        municipio[0].autoridadesRef!.map(async (ref) => {
+          const autoridad = await fetchDocuments<Autoridad>('autoridades', ref);
+          return { id: ref, ...autoridad[0] };
+        })
       );
-
-      if (municipio && municipio.autoridadesRef) {
-        const autoridadesFetched = await Promise.all(
-          municipio.autoridadesRef.map(async (ref: string) => {
-            const autoridad = await fetchDocuments<Autoridad>('autoridades', ref);
-            return autoridad;
-          })
-        );
-        setAutoridades(autoridadesFetched.flat());
-      }
-
-      setIsModalVisible(false);
-      form.resetFields();
+      setAutoridades(autoridadesData);
+      handleCancel();
     } catch (error) {
-      notification.error({
-        message: 'Error',
-        description: 'No se pudo guardar la autoridad.',
-      });
+      notification.error({ message: 'Error', description: 'Hubo un problema al guardar la autoridad.' });
     }
   };
 
-  // Función para eliminar una autoridad
   const handleDelete = async (id: string) => {
     try {
-      // Eliminar la autoridad
       await deleteDocument('autoridades', id);
-
-      // Obtener el municipio correspondiente
-      const municipios = await fetchDocuments<Municipio>('municipios', '');
-      const municipio = municipios.find(
-        (m: Municipio) => normalizaDenominacion(m.denominacion) === denominacionNormalizada
+      const municipio = await fetchDocuments<Municipio>('municipios', municipioId);
+      const nuevasReferencias = municipio[0].autoridadesRef!.filter((ref) => ref !== id);
+      await updateDocument('municipios', municipioId, { autoridadesRef: nuevasReferencias });
+      const autoridadesData = await Promise.all(
+        nuevasReferencias.map(async (ref) => {
+          const autoridad = await fetchDocuments<Autoridad>('autoridades', ref);
+          return { id: ref, ...autoridad[0] };
+        })
       );
-
-      if (municipio) {
-        // Actualizar el municipio para eliminar la referencia de la autoridad
-        const nuevasReferencias = municipio.autoridadesRef?.filter((ref: string) => ref !== id) || [];
-        await updateDocument('municipios', municipio.id, { autoridadesRef: nuevasReferencias });
-      }
-
-      notification.success({
-        message: 'Éxito',
-        description: 'Autoridad eliminada correctamente.',
-      });
-
-      // Recargar la lista de autoridades
-      if (municipio && municipio.autoridadesRef) {
-        const autoridadesFetched = await Promise.all(
-          municipio.autoridadesRef.map(async (ref: string) => {
-            const autoridad = await fetchDocuments<Autoridad>('autoridades', ref);
-            return autoridad;
-          })
-        );
-        setAutoridades(autoridadesFetched.flat());
-      }
+      setAutoridades(autoridadesData);
+      notification.success({ message: 'Éxito', description: 'Autoridad eliminada correctamente.' });
     } catch (error) {
-      notification.error({
-        message: 'Error',
-        description: 'No se pudo eliminar la autoridad.',
-      });
+      notification.error({ message: 'Error', description: 'Hubo un problema al eliminar la autoridad.' });
     }
   };
 
-  // Columnas de la tabla
-  const columns = [
-    {
-      title: 'Nombre',
-      dataIndex: 'nombre',
-      key: 'nombre',
-    },
-    {
-      title: 'Puesto',
-      dataIndex: 'puesto',
-      key: 'puesto',
-    },
-    {
-      title: 'Teléfono',
-      dataIndex: 'telefono',
-      key: 'telefono',
-    },
-    {
-      title: 'Acciones',
-      key: 'acciones',
-      render: (_text: string, record: Autoridad) => (
-        <span>
-          <Button type="link" onClick={() => showModal(record)}>
-            Editar
-          </Button>
-          <Button type="link" danger onClick={() => handleDelete(record.id!)}>
-            Eliminar
-          </Button>
-        </span>
-      ),
-    },
-  ];
-
   return (
-    <div className="p-6 bg-white shadow-lg rounded-lg">
-      {/* Mostrar el nombre del municipio en su formato original */}
-      <h1 className="text-2xl font-bold mb-4">Autoridades de {nombreMunicipio}</h1>
-      <Spin spinning={loading} tip="Cargando autoridades..." size="large">
-        {/* Botón para agregar nueva autoridad */}
-        <Button type="primary" onClick={() => showModal()} className="mb-4">
-          Agregar Autoridad
-        </Button>
-
-        {/* Tabla de autoridades */}
-        <Table
-          dataSource={autoridades}
-          columns={columns}
-          rowKey="id"
-          pagination={{ pageSize: 5 }}
+    <div>
+      <h2>Gestión de Autoridades en {nombreMunicipio}</h2>
+      <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
+        Agregar Autoridad
+      </Button>
+      <Table dataSource={autoridades} rowKey="id" loading={loading} pagination={{ pageSize: 5 }}>
+        <Table.Column title="Nombre" dataIndex="nombre" key="nombre" />
+        <Table.Column title="Puesto" dataIndex="puesto" key="puesto" />
+        <Table.Column title="Teléfono" dataIndex="telefono" key="telefono" />
+        <Table.Column
+          title="Acciones"
+          key="acciones"
+          render={(_, record: Autoridad) => (
+            <Space>
+              <Tooltip title="Editar">
+                <Button icon={<EditOutlined />} onClick={() => showModal(record)} />
+              </Tooltip>
+              <Tooltip title="Eliminar">
+                <Button danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id!)} />
+              </Tooltip>
+            </Space>
+          )}
         />
-      </Spin>
-
-      {/* Modal para crear/editar autoridad */}
-      <Modal
-        title={editingAutoridad ? 'Editar Autoridad' : 'Agregar Autoridad'}
-        visible={isModalVisible}
-        onCancel={handleCancel}
-        footer={null}
-      >
-        <Form form={form} onFinish={handleSave} layout="vertical">
-          <Form.Item
-            label="Nombre"
-            name="nombre"
-            rules={[{ required: true, message: 'Por favor ingresa el nombre' }]}
-          >
-            <Input placeholder="Nombre de la autoridad" />
+      </Table>
+      <Modal title={editingAutoridad ? 'Editar Autoridad' : 'Agregar Autoridad'} visible={isModalVisible} onCancel={handleCancel} onOk={() => form.submit()}>
+        <Form form={form} layout="vertical" onFinish={handleSave}>
+          <Form.Item name="nombre" label="Nombre" rules={[{ required: true, message: 'Campo requerido' }]}>
+            <Input />
           </Form.Item>
-          <Form.Item
-            label="Puesto"
-            name="puesto"
-            rules={[{ required: true, message: 'Por favor ingresa el puesto' }]}
-          >
-            <Input placeholder="Puesto de la autoridad" />
+          <Form.Item name="puesto" label="Puesto" rules={[{ required: true, message: 'Campo requerido' }]}>
+            <Input />
           </Form.Item>
-          <Form.Item
-            label="Teléfono"
-            name="telefono"
-            rules={[{ required: true, message: 'Por favor ingresa el teléfono' }]}
-          >
-            <Input placeholder="Teléfono de la autoridad" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              {editingAutoridad ? 'Actualizar' : 'Guardar'}
-            </Button>
+          <Form.Item name="telefono" label="Teléfono">
+            <Input />
           </Form.Item>
         </Form>
       </Modal>

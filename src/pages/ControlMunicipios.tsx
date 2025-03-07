@@ -176,6 +176,27 @@ const ControlMunicipios: React.FC = () => {
     // Columnas de la tabla (memorizadas)
     const columns = useMemo(() => [
         {
+            title: 'Imagen',
+            dataIndex: 'imagen',
+            key: 'imagen',
+            width: 150,
+            render: (imagen: string) => (
+                <Image
+                    src={imagen}
+                    alt="Imagen del municipio"
+                    width={120}
+                    height={120}
+                    style={{ objectFit: 'cover', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                    preview={{ mask: <div className="flex items-center justify-center text-white">Ver imagen</div> }}
+                    placeholder={
+                        <div className="flex items-center justify-center bg-gray-200 w-full h-full" style={{ height: '120px', width: '120px' }}>
+                            Sin imagen
+                        </div>
+                    }
+                />
+            ),
+        },
+        {
             title: 'Denominación Social',
             dataIndex: 'denominacion',
             key: 'denominacion',
@@ -187,7 +208,7 @@ const ControlMunicipios: React.FC = () => {
             dataIndex: 'rfc',
             key: 'rfc',
             width: 150,
-            render: (text: string) => <div className="text-gray-500 text-sm">RFC: {text}</div>,
+            render: (text: string) => <strong>{text}</strong>,
         },
         {
             title: 'Dirección',
@@ -214,27 +235,6 @@ const ControlMunicipios: React.FC = () => {
                     <div>Localidad: {record.nombreLocalidad}</div>
                     {record.entreCalle && <div>Entre calles: {record.entreCalle} y {record.otraCalle}</div>}
                 </div>
-            ),
-        },
-        {
-            title: 'Imagen',
-            dataIndex: 'imagen',
-            key: 'imagen',
-            width: 150,
-            render: (imagen: string) => (
-                <Image
-                    src={imagen}
-                    alt="Imagen del municipio"
-                    width={120}
-                    height={120}
-                    style={{ objectFit: 'cover', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-                    preview={{ mask: <div className="flex items-center justify-center text-white">Ver imagen</div> }}
-                    placeholder={
-                        <div className="flex items-center justify-center bg-gray-200 w-full h-full" style={{ height: '120px', width: '120px' }}>
-                            Sin imagen
-                        </div>
-                    }
-                />
             ),
         },
         {

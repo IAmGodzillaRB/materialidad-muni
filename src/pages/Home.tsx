@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import SidebarComponent from '../layouts/sidebar';
+import SidebarComponent from '../layouts/Sidebar';
 import { useAuth } from '../context/AuthContext';
 import { Button } from 'antd';
 import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
@@ -168,6 +168,7 @@ const Home: React.FC = () => {
           </div>
         </div>
 
+
         {/* Contenido dinámico */}
         <div className="p-2">
           <Routes>
@@ -178,7 +179,7 @@ const Home: React.FC = () => {
               <Route path=":denominacion" element={<DetalleMunicipio />} />
               <Route path=":denominacion/autoridades" element={<Autoridades />} />
             </Route>
-          
+
           </Routes>
         </div>
       </main>

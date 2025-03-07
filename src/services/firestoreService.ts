@@ -3,7 +3,7 @@ import { db } from './firebaseConfig'; // Importa la instancia de Firestore
 import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, DocumentData } from 'firebase/firestore';
 
 // Obtener todos los documentos de una colección
-export const fetchDocuments = async <T>(collectionName: string, ref: string): Promise<T[]> => {
+export const fetchDocuments = async <T>(collectionName: string, _ref: string): Promise<T[]> => {
   try {
     const querySnapshot = await getDocs(collection(db, collectionName));
     const documents = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as T));
