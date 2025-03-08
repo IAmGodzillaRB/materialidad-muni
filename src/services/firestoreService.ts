@@ -1,6 +1,5 @@
-// services/firestoreService.ts
 import { db } from './firebaseConfig'; // Importa la instancia de Firestore
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, DocumentData } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, DocumentData, DocumentReference } from 'firebase/firestore';
 
 // Obtener todos los documentos de una colección
 export const fetchDocuments = async <T>(collectionName: string, _ref: string): Promise<T[]> => {
@@ -10,6 +9,22 @@ export const fetchDocuments = async <T>(collectionName: string, _ref: string): P
     return documents;
   } catch (error) {
     console.error(`Error al obtener los documentos de ${collectionName}:`, error);
+    throw error;
+  }
+};
+
+// Obtener un documento específico por ID
+export const getDocumentById = async <T>(collectionName: string, documentId: string): Promise<T | null> => {
+  try {
+    const docRef = doc(db, collectionName, documentId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as T;
+    }
+    return null;
+  } catch (error) {
+    console.error(`Error al obtener el documento de ${collectionName} con ID ${documentId}:`, error);
     throw error;
   }
 };
@@ -43,4 +58,9 @@ export const deleteDocument = async (collectionName: string, id: string): Promis
     console.error(`Error al eliminar el documento de ${collectionName}:`, error);
     throw error;
   }
+};
+
+// Crear una referencia a un documento
+export const createDocRef = (collectionName: string, documentId: string): DocumentReference => {
+  return doc(db, collectionName, documentId);
 };
