@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { auth, db } from '../services/firebaseConfig'; // Importa las instancias de Firebase
+import { auth, db } from '../services/firebase/firebaseConfig'; // Importa las instancias de Firebase
 import {
   onAuthStateChanged,
   signOut,

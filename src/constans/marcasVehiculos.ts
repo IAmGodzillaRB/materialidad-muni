@@ -1,0 +1,17 @@
+export const marcasComerciales = [
+    'Toyota',
+    'Volkswagen',
+    'Ford',
+    'Chevrolet',
+    'Honda',
+    'Nissan',
+    'Hyundai',
+    'Kia',
+    'BMW',
+    'Mercedes-Benz',
+    'Audi',
+    'Renault',
+    'Peugeot',
+    'Fiat',
+    'Volvo',
+  ];

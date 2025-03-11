@@ -8,6 +8,7 @@ import Municipios from './Municipios/Municipios';
 import ControlMunicipios from './ControlMunicipios';
 import DetalleMunicipio from './Municipios/DetalleMunicipio';
 import Autoridades from './Municipios/Autoridades';
+import Vehiculos from './Municipios/Vehiculos';
 
 
 const Home: React.FC = () => {
@@ -178,6 +179,7 @@ const Home: React.FC = () => {
               <Route index element={<Municipios />} />
               <Route path=":denominacion" element={<DetalleMunicipio />} />
               <Route path=":denominacion/autoridades" element={<Autoridades />} />
+              <Route path=":denominacion/vehiculos" element={<Vehiculos />} />
             </Route>
 
           </Routes>

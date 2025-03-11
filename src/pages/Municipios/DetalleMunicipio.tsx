@@ -70,6 +70,12 @@ const DetalleMunicipio: React.FC = () => {
       navigate(`/home/municipios/${encodeURIComponent(normalizaDenominacion(municipio.denominacion))}/autoridades`);
     }
   };
+  const handleVehiculosClick = () => {
+    if (municipio) {
+      // Navegar a la página de autoridades con la denominación normalizada
+      navigate(`/home/municipios/${encodeURIComponent(normalizaDenominacion(municipio.denominacion))}/vehiculos`);
+    }
+  }
 
   return (
     <div className="flex justify-center h-screen bg-gray-100">
@@ -104,15 +110,17 @@ const DetalleMunicipio: React.FC = () => {
                     <div onClick={handleAutoridadesClick}>
                       <CardSeccion
                         titulo="Autoridades"
-                        imagen="/person.svg"         
+                        imagen="/person.svg"
                       />
                     </div>
                   </Col>
                   <Col xs={24} sm={12} md={8} lg={6}>
-                    <CardSeccion
-                      titulo="Vehículos"
-                      imagen="/car.svg"
-                    />
+                    <div onClick={handleVehiculosClick}>
+                      <CardSeccion
+                        titulo="Vehículos"
+                        imagen="/car.svg"
+                      />
+                    </div>
                   </Col>
                 </Row>
               </div>

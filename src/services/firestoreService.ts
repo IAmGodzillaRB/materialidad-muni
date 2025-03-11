@@ -1,4 +1,4 @@
-import { db } from './firebaseConfig'; // Importa la instancia de Firestore
+import { db } from './firebase/firebaseConfig'; // Importa la instancia de Firestore
 import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, DocumentData, DocumentReference } from 'firebase/firestore';
 
 // Obtener todos los documentos de una colección
