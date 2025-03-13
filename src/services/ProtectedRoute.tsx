@@ -7,11 +7,11 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  // ⚡ Usa useAuth en lugar de useContext(AuthContext)
+
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <p>Cargando...</p>; // Indicador de carga
+    return <p>Cargando...</p>; 
   }
 
   if (!user) {

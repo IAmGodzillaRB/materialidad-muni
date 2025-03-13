@@ -1,8 +1,8 @@
 // hooks/useVehiculos.ts
 import { useState, useEffect } from 'react';
 import { fetchDocuments, getDocumentById} from '../services/firestoreService';
-import { Vehiculo } from '../types/vehiculo'; 
-import { Municipio } from '../types/municipio';
+import { Vehiculo } from '../types/Vehiculo'; 
+import { Municipio } from '../types/Municipio';
 import { normalizaDenominacion } from '../utils/normalizaDenominacion';
 
 
