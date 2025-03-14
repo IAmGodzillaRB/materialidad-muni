@@ -9,7 +9,7 @@ const Municipios: React.FC = () => {
   const navigate = useNavigate();
   const { filteredMunicipios, loading, error, handleSearch } = useMunicipios();
 
-  const handleVerDetalles = (denominacion: string) => {
+  const handleVerOpciones = (denominacion: string) => {
     navigate(`/home/municipios/${encodeURIComponent(normalizaDenominacion(denominacion))}`);
   };
 
@@ -38,10 +38,10 @@ const Municipios: React.FC = () => {
         <Spin spinning={loading} tip="Cargando municipios..." size="large">
           <Row gutter={[16, 16]}>
             {filteredMunicipios.map((municipio) => (
-              <Col key={municipio.id} xs={24} sm={12} md={8} lg={6}>
+              <Col key={municipio.id} xs={24} sm={16} md={8} lg={6}>
                 <MunicipioCard
                   municipio={municipio}
-                  onClick={() => handleVerDetalles(municipio.denominacion)}
+                  onClick={() => handleVerOpciones(municipio.denominacion)}
                 />
               </Col>
             ))}

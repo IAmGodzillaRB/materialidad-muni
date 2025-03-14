@@ -1,102 +1,34 @@
-import React, { useEffect } from 'react';
-import { Modal, Form, Input, Button } from 'antd';
-
-interface Autoridad {
-  id?: string;
-  nombre: string;
-  puesto: string;
-  telefono: string;
-}
+import React from 'react';
+import { Modal, Form, Input } from 'antd';
+import { Autoridad } from '../../types/Autoridad';
 
 interface AutoridadModalProps {
   visible: boolean;
-  onClose: () => void;
-  onSubmit: (values: Autoridad) => Promise<void>;
-  formData: Autoridad | null;
-  isEditMode: boolean;
-  loading: boolean;
+  onCancel: () => void;
+  onSave: (values: Autoridad) => void;
+  initialValues?: Autoridad | null;
 }
 
-const AutoridadModal: React.FC<AutoridadModalProps> = ({
-  visible,
-  onClose,
-  onSubmit,
-  formData,
-  isEditMode,
-  loading,
-}) => {
+const AutoridadModal: React.FC<AutoridadModalProps> = ({ visible, onCancel, onSave, initialValues }) => {
   const [form] = Form.useForm();
 
-  // Actualizar el formulario cuando el modal se abre o cambian los datos
-  useEffect(() => {
-    if (visible && formData) {
-      form.setFieldsValue(formData); // Actualizar el formulario con los datos de formData
-    } else {
-      form.resetFields(); // Limpiar el formulario si no hay datos
-    }
-  }, [visible, formData, form]);
-
-  // Función para manejar el envío del formulario
-  const handleSubmit = async (values: Autoridad) => {
-    await onSubmit(values);
-    form.resetFields(); // Limpiar el formulario después de enviar
-  };
-
-  // Función para manejar la cancelación
-  const handleCancel = () => {
-    form.resetFields(); // Limpiar el formulario
-    onClose(); // Cerrar el modal
-  };
+  React.useEffect(() => {
+    form.setFieldsValue(initialValues || { nombre: '', puesto: '', telefono: '' });
+  }, [initialValues, form]);
 
   return (
     <Modal
-      title={isEditMode ? 'Editar Autoridad' : 'Agregar Autoridad'}
+      title={initialValues ? 'Editar Autoridad' : 'Agregar Autoridad'}  
       open={visible}
-      onCancel={handleCancel}
-      footer={null}
-      destroyOnClose // Destruir el modal al cerrar para reiniciar el estado
+      onCancel={onCancel}
+      onOk={() => form.submit()}
     >
-      <Form
-        form={form}
-        onFinish={handleSubmit}
-        layout="vertical"
-        preserve={false} // No preservar los valores del formulario al cerrar
-      >
-        {/* Campo para el nombre */}
-        <Form.Item
-          label="Nombre"
-          name="nombre"
-          rules={[{ required: true, message: 'Por favor ingresa el nombre' }]}
-        >
-          <Input placeholder="Nombre de la autoridad" />
+      <Form form={form} layout="vertical" onFinish={onSave}>
+        <Form.Item name="nombre" label="Nombre" rules={[{ required: true, message: 'Campo requerido' }]}>
+          <Input />
         </Form.Item>
-
-        {/* Campo para el puesto */}
-        <Form.Item
-          label="Puesto"
-          name="puesto"
-          rules={[{ required: true, message: 'Por favor ingresa el puesto' }]}
-        >
-          <Input placeholder="Puesto de la autoridad" />
-        </Form.Item>
-
-        {/* Campo para el teléfono */}
-        <Form.Item
-          label="Teléfono"
-          name="telefono"
-          rules={[{ required: true, message: 'Por favor ingresa el teléfono' }]}
-        >
-          <Input placeholder="Teléfono de la autoridad" />
-        </Form.Item>
-
-        {/* Botones de acción */}
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading}>
-            {isEditMode ? 'Actualizar' : 'Guardar'}
-          </Button>
-          <Button style={{ marginLeft: 8 }} onClick={handleCancel} disabled={loading}>
-            Cancelar
-          </Button>
+        <Form.Item name="puesto" label="Puesto" rules={[{ required: true, message: 'Campo requerido' }]}>
+          <Input />
         </Form.Item>
       </Form>
     </Modal>

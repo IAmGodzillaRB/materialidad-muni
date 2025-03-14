@@ -1,25 +1,74 @@
 import React, { useState } from 'react';
 import { Table, Button, Tooltip, Image } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import useMunicipios from '../hooks/useMunicipios';
-import MunicipioModal from '../components/modals/MunicipioModal';
-import SearchBar from '../components/SearchBar';
-import { Municipio } from '../types/Municipio';
+import useMunicipios from '../../hooks/useMunicipios';
+import MunicipioModal from '../../components/modals/MunicipioModal';
+import SearchBar from '../../components/SearchBar';
+import { Municipio } from '../../types/Municipio';
+import {
+  crearMunicipio,
+  actualizarMunicipio,
+  eliminarMunicipio,
+  eliminarMunicipioDefinitivamente,
+} from '../../services/municipioService';
+import { mostrarExito, mostrarError } from '../../utils/notifications';
 
 const ControlMunicipios: React.FC = () => {
-  const {
-    filteredMunicipios,
-    loading,
-    error,
-    handleAddMunicipio,
-    handleEditMunicipio,
-    handleDelete,
-    handleDeletePermanently,
-    handleSearch,
-  } = useMunicipios();
-
+  const { filteredMunicipios, loading, error, handleSearch, refetch } = useMunicipios();
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [editingMunicipio, setEditingMunicipio] = useState<Municipio | null>(null);
+
+  const handleAddMunicipio = async (municipio: Municipio) => {
+    const fechaCreacion = {
+      ...municipio,
+      fechaCreacion: new Date().toISOString()
+    };
+    
+    try {
+      await crearMunicipio(fechaCreacion); 
+      await refetch();
+      mostrarExito('Éxito', 'Municipio creado correctamente.');
+      setOpenModal(false); // Cerrar el modal después de agregar
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      mostrarError('Error al crear municipio', errorMessage);
+    }
+  };
+  
+
+  const handleEditMunicipio = async (id: string, municipio: Partial<Municipio>) => {
+    try {
+      await actualizarMunicipio(id, municipio);
+      await refetch();
+      mostrarExito('Éxito', 'Municipio actualizado correctamente.');
+      setOpenModal(false); // Cerrar el modal después de editar
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      mostrarError('Error al actualizar municipio', errorMessage);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await eliminarMunicipio(id);
+      await refetch();
+      mostrarExito('Éxito', 'Municipio movido a la papelera.');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      mostrarError('Error al mover a papelera', errorMessage);
+    }
+  };
+
+  const handleDeletePermanently = async (id: string) => {
+    try {
+      await eliminarMunicipioDefinitivamente(id);
+      await refetch();
+      mostrarExito('Éxito', 'Municipio eliminado definitivamente.');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      mostrarError('Error al eliminar definitivamente', errorMessage);
+    }
+  };
 
   const columns = [
     {
@@ -62,7 +111,7 @@ const ControlMunicipios: React.FC = () => {
       key: 'direccion',
       render: (_text: string, record: Municipio) => (
         <div>
-          <div>{record.tipoVialidad} {record.nombreVialidad} #{record.numeroExterior} 
+          <div>{record.tipoVialidad} {record.nombreVialidad} #{record.numeroExterior}
             {record.numeroInterior && ` Int. ${record.numeroInterior}`}
           </div>
           <div className="text-gray-500 text-sm">
@@ -151,17 +200,16 @@ const ControlMunicipios: React.FC = () => {
         <div className="flex justify-end mb-6 gap-2">
           <SearchBar onSearch={handleSearch} />
           <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => {
-            setEditingMunicipio(null);
-            setOpenModal(true);
-          }}
-          aria-label="Agregar nuevo municipio"
-          className="mt-4"
-        >
-          Agregar Municipio
-        </Button>
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setEditingMunicipio(null);
+              setOpenModal(true);
+            }}
+            aria-label="Agregar nuevo municipio"
+          >
+            Agregar Municipio
+          </Button>
         </div>
 
         <div className="overflow-x-auto flex flex-col h-full">
@@ -173,7 +221,6 @@ const ControlMunicipios: React.FC = () => {
             bordered
             scroll={{ x: 'max-content' }}
             loading={loading}
-            className="w-full"
           />
         </div>
 
@@ -189,6 +236,7 @@ const ControlMunicipios: React.FC = () => {
           }}
           formData={editingMunicipio}
           isEditMode={!!editingMunicipio}
+          loading={loading}
         />
       </div>
     </div>

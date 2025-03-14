@@ -1,15 +1,23 @@
-import { Card, Image } from 'antd';
+import React from 'react';
+import { Card } from 'antd';
+import './CardSeccion.css';
 
 interface CardSeccionProps {
   titulo: string;
   imagen: string;
+  className?: string;
 }
 
-const CardSeccion = ({ titulo, imagen }: CardSeccionProps) => {
+const CardSeccion: React.FC<CardSeccionProps> = ({ titulo, imagen, className }) => {
   return (
-    <Card hoverable className="text-center">
-      <Image src={imagen} alt={titulo} preview={false} width={64} height={64} />
-      <h3 className="mt-2">{titulo}</h3>
+    <Card
+      hoverable
+      cover={<img alt={titulo} src={imagen} className="card-image" />}
+      className={`card-seccion ${className || ''}`}
+    >
+      <Card.Meta
+        title={<span className="card-title">{titulo}</span>}
+      />
     </Card>
   );
 };

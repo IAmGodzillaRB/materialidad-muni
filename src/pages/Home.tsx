@@ -5,10 +5,14 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from 'antd';
 import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
 import Municipios from './Municipios/Municipios';
-import ControlMunicipios from './ControlMunicipios';
-import DetalleMunicipio from './Municipios/DetalleMunicipio';
-import Autoridades from './Municipios/Autoridades';
-import Vehiculos from './Municipios/Vehiculos';
+import ControlMunicipios from './Municipios/ControlMunicipios';
+import DetalleMunicipio from './Municipios/DetalleMunicipio/DetalleMunicipio';
+import Autoridades from './Municipios/DetalleMunicipio/Autoridades/Autoridades';
+import Vehiculos from './Municipios/DetalleMunicipio/Vehiculo/Vehiculos';
+import OpcionesMunicipio from './Municipios/OpcionesMunicipio/OpcionesMunicipio';
+import TipoAdquisicion from './Municipios/Adquisiciones/Adquisiciones';
+import Servicios from './Municipios/Adquisiciones/Tipos/Servicios';
+import Obras from './Municipios/Adquisiciones/Tipos/Obras';
 
 
 const Home: React.FC = () => {
@@ -177,9 +181,13 @@ const Home: React.FC = () => {
             <Route path="control-municipios" element={<ControlMunicipios />} />
             <Route path="municipios">
               <Route index element={<Municipios />} />
-              <Route path=":denominacion" element={<DetalleMunicipio />} />
-              <Route path=":denominacion/autoridades" element={<Autoridades />} />
-              <Route path=":denominacion/vehiculos" element={<Vehiculos />} />
+              <Route path=":denominacion" element={<OpcionesMunicipio />} />
+              <Route path=":denominacion/adquisiciones" element={<TipoAdquisicion />} />
+              <Route path=":denominacion/adquisiciones/servicios"element={<Servicios />}/>
+              <Route path=":denominacion/adquisiciones/obras"element={<Obras />}/>
+              <Route path=":denominacion/detalles-municipio" element={<DetalleMunicipio />} />
+              <Route path=":denominacion/detalles-municipio/autoridades" element={<Autoridades />} />
+              <Route path=":denominacion/detalles-municipio/vehiculos" element={<Vehiculos />} />
             </Route>
 
           </Routes>

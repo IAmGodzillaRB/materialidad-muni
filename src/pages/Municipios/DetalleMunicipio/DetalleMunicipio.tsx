@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Spin, Row, Col, Image } from 'antd';
-import useMunicipios from '../../hooks/useMunicipios';
-import { normalizaDenominacion } from '../../utils/normalizaDenominacion';
-import CardSeccion from '../../components/CardSeccion/CardSeccion';
+import useMunicipios from '../../../hooks/useMunicipios';
+import { normalizaDenominacion } from '../../../utils/normalizaDenominacion';
+import CardSeccion from '../../../components/CardSeccion/CardSeccion';
 
 const DetalleMunicipio: React.FC = () => {
   const navigate = useNavigate();
@@ -16,13 +16,13 @@ const DetalleMunicipio: React.FC = () => {
 
   const handleAutoridadesClick = () => {
     if (municipio) {
-      navigate(`/home/municipios/${encodeURIComponent(normalizaDenominacion(municipio.denominacion))}/autoridades`);
+      navigate(`/home/municipios/${encodeURIComponent(normalizaDenominacion(municipio.denominacion))}/detalles-municipio/autoridades`);
     }
   };
 
   const handleVehiculosClick = () => {
     if (municipio) {
-      navigate(`/home/municipios/${encodeURIComponent(normalizaDenominacion(municipio.denominacion))}/vehiculos`);
+      navigate(`/home/municipios/${encodeURIComponent(normalizaDenominacion(municipio.denominacion))}/detalles-municipio/vehiculos`);
     }
   };
 
