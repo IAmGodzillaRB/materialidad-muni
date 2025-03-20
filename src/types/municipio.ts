@@ -1,6 +1,8 @@
+import { DocumentReference } from 'firebase/firestore';
+
 export interface Municipio {
-  vehiculosRef: any;
-  autoridadesRef: never[];
+  vehiculosRef: DocumentReference[]; // Arreglo de referencias a vehículos
+  autoridadesRef: DocumentReference[]; // Arreglo de referencias a autoridades
   id: string;
   rfc: string;
   denominacion: string;
@@ -9,6 +11,7 @@ export interface Municipio {
   numeroInterior?: string;
   nombreLocalidad: string;
   entidadFederativa: string;
+  distrito: string;
   tipoVialidad?: string;
   numeroExterior: string;
   nombreColonia?: string;

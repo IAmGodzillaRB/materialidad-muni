@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { fetchDocuments, getDocumentById } from '../services/firestoreService';
 import { Autoridad } from '../types/Autoridad';
 import { Municipio } from '../types/Municipio';
+import { DocumentReference } from 'firebase/firestore';
 import { normalizaDenominacion } from '../utils/normalizaDenominacion';
 
 const useAutoridades = (denominacion: string) => {
@@ -24,10 +25,9 @@ const useAutoridades = (denominacion: string) => {
 
           if (municipioSeleccionado.autoridadesRef?.length) {
             const listaAutoridades = await Promise.all(
-              municipioSeleccionado.autoridadesRef.map(async (ref: { id: string } | string) => {
-                const autoridadId = typeof ref === 'string' ? ref : ref.id;
-                const autoridadDoc = await getDocumentById<Autoridad>('autoridades', autoridadId);
-                return autoridadDoc ? { ...autoridadDoc, id: autoridadId } : null;
+              municipioSeleccionado.autoridadesRef.map(async (ref: DocumentReference) => {
+                const autoridadDoc = await getDocumentById<Autoridad>('autoridades', ref.id);
+                return autoridadDoc ? { ...autoridadDoc, id: ref.id } : null;
               })
             );
             setAutoridades(listaAutoridades.filter(Boolean) as Autoridad[]);

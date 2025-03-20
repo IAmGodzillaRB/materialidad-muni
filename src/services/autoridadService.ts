@@ -1,6 +1,7 @@
-import { createDocument, updateDocument, deleteDocument, getDocumentById, fetchDocuments } from './firestoreService';
+import { createDocument, updateDocument, deleteDocument, getDocumentById, fetchDocuments, createDocRef } from './firestoreService';
 import { Autoridad } from '../types/Autoridad';
 import { Municipio } from '../types/Municipio';
+import { DocumentReference } from 'firebase/firestore';
 
 export const crearAutoridad = async (autoridad: Autoridad): Promise<string> => {
   return await createDocument('autoridades', autoridad);
@@ -22,10 +23,10 @@ export const obtenerTodasLasAutoridades = async (): Promise<Autoridad[]> => {
   return await fetchDocuments<Autoridad>('autoridades', '');
 };
 
-export const agregarReferenciaAutoridad = async (municipioId: string, autoridadRef: { id: string }): Promise<void> => {
+export const agregarReferenciaAutoridad = async (municipioId: string, autoridadId: string): Promise<void> => {
   const municipio = await getDocumentById<Municipio>('municipios', municipioId);
   if (!municipio) throw new Error('Municipio no encontrado');
-
+  const autoridadRef: DocumentReference = createDocRef('autoridades', autoridadId); // Crear referencia con tu función
   const nuevasReferencias = [...(municipio.autoridadesRef || []), autoridadRef];
   await updateDocument('municipios', municipioId, { autoridadesRef: nuevasReferencias });
 };

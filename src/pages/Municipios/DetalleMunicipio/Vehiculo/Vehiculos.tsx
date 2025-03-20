@@ -27,7 +27,6 @@ const Vehiculos: React.FC = () => {
 
   const handleSave = async (values: Vehiculo) => {
     try {
-      // Convertimos año y kmPorLitro a números para el backend
       const vehiculoData: Vehiculo = {
         ...values,
         año: Number(values.año),
@@ -40,7 +39,7 @@ const Vehiculos: React.FC = () => {
         notification.success({ message: 'Vehículo actualizado correctamente.' });
       } else {
         const nuevoVehiculoId = await crearVehiculo(vehiculoData);
-        await agregarReferenciaVehiculo(municipioId, nuevoVehiculoId);
+        await agregarReferenciaVehiculo(municipioId, nuevoVehiculoId); // Esto guarda un DocumentReference
         setVehiculos(prev => [...prev, { ...vehiculoData, id: nuevoVehiculoId }]);
         notification.success({ message: 'Vehículo creado correctamente.' });
       }

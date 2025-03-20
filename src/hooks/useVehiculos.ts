@@ -1,10 +1,9 @@
-// hooks/useVehiculos.ts
 import { useState, useEffect } from 'react';
-import { fetchDocuments, getDocumentById} from '../services/firestoreService';
-import { Vehiculo } from '../types/Vehiculo'; 
+import { fetchDocuments, getDocumentById } from '../services/firestoreService';
+import { Vehiculo } from '../types/Vehiculo';
 import { Municipio } from '../types/Municipio';
+import { DocumentReference } from 'firebase/firestore';
 import { normalizaDenominacion } from '../utils/normalizaDenominacion';
-
 
 const useVehiculos = (denominacion: string) => {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
@@ -26,10 +25,9 @@ const useVehiculos = (denominacion: string) => {
 
           if (municipioSeleccionado.vehiculosRef?.length) {
             const listaVehiculos = await Promise.all(
-              municipioSeleccionado.vehiculosRef.map(async (ref: { id: any; }) => {
-                const vehiculoId = typeof ref === 'string' ? ref : ref.id;
-                const vehiculoDoc = await getDocumentById<Vehiculo>('vehiculos', vehiculoId);
-                return vehiculoDoc ? { ...vehiculoDoc, id: vehiculoId } : null;
+              municipioSeleccionado.vehiculosRef.map(async (ref: DocumentReference) => {
+                const vehiculoDoc = await getDocumentById<Vehiculo>('vehiculos', ref.id);
+                return vehiculoDoc ? { ...vehiculoDoc, id: ref.id } : null;
               })
             );
             setVehiculos(listaVehiculos.filter(Boolean) as Vehiculo[]);

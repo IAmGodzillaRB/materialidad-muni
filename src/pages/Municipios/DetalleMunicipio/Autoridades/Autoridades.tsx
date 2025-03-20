@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Table, Button, Tooltip, notification, Space, Spin } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import useAutoridades from '../../../../hooks/useAutoridades';
-import { crearAutoridad, actualizarAutoridad, eliminarAutoridad } from '../../../../services/autoridadService';
-import AutoridadModal from '../../../../components/modals/AutoridadModal';
-import { Autoridad } from '../../../../types/Autoridad';
+import useAutoridades from '@/hooks/useAutoridades';
+import { crearAutoridad, actualizarAutoridad, eliminarAutoridad, agregarReferenciaAutoridad } from '@/services/autoridadService';
+import AutoridadModal from '@/components/modals/AutoridadModal';
+import { Autoridad } from '@/types/Autoridad';
 
 const Autoridades: React.FC = () => {
   const { denominacion } = useParams<{ denominacion: string }>();
-  const { autoridades, loading, nombreMunicipio, setAutoridades } = useAutoridades(denominacion || '');
+  const { autoridades, loading, municipioId, nombreMunicipio, setAutoridades } = useAutoridades(denominacion || '');
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [editingAutoridad, setEditingAutoridad] = useState<Autoridad | null>(null);
 
@@ -31,6 +31,7 @@ const Autoridades: React.FC = () => {
         notification.success({ message: 'Autoridad actualizada correctamente.' });
       } else {
         const nuevaAutoridadId = await crearAutoridad(values);
+        await agregarReferenciaAutoridad(municipioId, nuevaAutoridadId); 
         setAutoridades(prev => [...prev, { ...values, id: nuevaAutoridadId }]);
         notification.success({ message: 'Autoridad creada correctamente.' });
       }

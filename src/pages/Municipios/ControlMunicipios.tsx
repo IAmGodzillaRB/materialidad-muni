@@ -128,6 +128,7 @@ const ControlMunicipios: React.FC = () => {
       key: 'informacionAdicional',
       render: (_text: string, record: Municipio) => (
         <div>
+          <div>Distrito: {record.distrito}</div>
           <div>Localidad: {record.nombreLocalidad}</div>
           {record.entreCalle && <div>Entre calles: {record.entreCalle} y {record.otraCalle}</div>}
         </div>

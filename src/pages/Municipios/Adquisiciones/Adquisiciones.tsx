@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Spin, Row, Col } from 'antd';
 import useMunicipios from '@/hooks/useMunicipios';
 import { normalizaDenominacion } from '@/utils/normalizaDenominacion';
+import { Adquiciones } from '@/constans/tiposAdquisiciones'; // Adjust the path as needed
 
 const TipoAdquisicion: React.FC = () => {
   const navigate = useNavigate();
@@ -12,33 +13,6 @@ const TipoAdquisicion: React.FC = () => {
   const municipio = allMunicipios.find(
     (m) => normalizaDenominacion(m.denominacion) === denominacion
   );
-
-  const acquisitionTypes = [
-    {
-      title: 'Servicios',
-      description: 'Contratación de servicios profesionales, mantenimiento, etc.',
-      icon: '🛠️',
-      path: 'servicios',
-    },
-    {
-      title: 'Obras',
-      description: 'Construcción y mantenimiento de infraestructura.',
-      icon: '🏗️',
-      path: 'obras',
-    },
-    {
-      title: 'Bienes Muebles',
-      description: 'Compra de equipamiento y materiales.',
-      icon: '📦',
-      path: 'bienes-muebles',
-    },
-    {
-      title: 'Arrendamientos',
-      description: 'Renta de inmuebles y maquinaria.',
-      icon: '🏢',
-      path: 'arrendamientos',
-    },
-  ];
 
   const handleCardClick = (path: string) => {
     if (municipio) {
@@ -64,7 +38,7 @@ const TipoAdquisicion: React.FC = () => {
           <Spin spinning={loading} tip="Cargando datos..." size="large">
             {municipio ? (
               <Row gutter={[24, 24]} justify="center">
-                {acquisitionTypes.map((type) => (
+                {Adquiciones.map((type) => (
                   <Col key={type.path} xs={24} sm={12} md={6}>
                     <div
                       onClick={() => handleCardClick(type.path)}

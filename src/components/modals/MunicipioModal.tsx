@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Button, Upload, Select, Steps, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
-import { subirImagenYGuardarURL } from '../../services/storageService'; 
+import { subirImagenYGuardarURL } from '../../services/storageService';
 import { Municipio } from '../../types/Municipio';
+import { distritos } from '@/constans/DistritosOaxaca';
 
 const { Step } = Steps;
 const { Option } = Select;
@@ -25,9 +26,9 @@ const MunicipioModal: React.FC<MunicipioModalProps> = ({
   loading,
 }) => {
   const [form] = Form.useForm();
-  const [currentStep, setCurrentStep] = useState<number>(0); 
-  const [imageUrl, setImageUrl] = useState<string | null>(null); 
-  const [fileList, setFileList] = useState<any[]>([]); 
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [fileList, setFileList] = useState<any[]>([]);
 
   // Cargar los datos del municipio cuando estamos en modo edición
   useEffect(() => {
@@ -44,7 +45,7 @@ const MunicipioModal: React.FC<MunicipioModalProps> = ({
           }
         ]);
       }
-      
+
       // Inicializar el formulario con los datos existentes
       form.setFieldsValue({
         denominacion: formData.denominacion,
@@ -67,7 +68,7 @@ const MunicipioModal: React.FC<MunicipioModalProps> = ({
   // Limpiar el formulario cuando se cierra el modal
   useEffect(() => {
     if (!open) {
-      setCurrentStep(0); 
+      setCurrentStep(0);
       setImageUrl(null);
       setFileList([]);
       form.resetFields();
@@ -77,11 +78,11 @@ const MunicipioModal: React.FC<MunicipioModalProps> = ({
   // Manejar la subida de la imagen
   const handleImageUpload = async (file: File) => {
     try {
-      const url = await subirImagenYGuardarURL(file); 
-      setImageUrl(url); 
-      setFileList([{ uid: '-1', name: file.name, status: 'done', url }]); 
+      const url = await subirImagenYGuardarURL(file);
+      setImageUrl(url);
+      setFileList([{ uid: '-1', name: file.name, status: 'done', url }]);
       message.success('Imagen subida correctamente');
-      setCurrentStep(1); 
+      setCurrentStep(1);
       return false; // Prevenir la subida automática de Upload
     } catch (error) {
       message.error('Error al subir la imagen');
@@ -98,7 +99,7 @@ const MunicipioModal: React.FC<MunicipioModalProps> = ({
   const handleSubmit = (values: Municipio) => {
     // Si estamos editando y no cambiamos la imagen, usar la imagen existente
     const finalImageUrl = imageUrl || (isEditMode ? formData?.imagen : null);
-    
+
     if (finalImageUrl) {
       const municipioCompleto = { ...values, imagen: finalImageUrl };
       onSubmit(municipioCompleto);
@@ -151,7 +152,7 @@ const MunicipioModal: React.FC<MunicipioModalProps> = ({
               {isEditMode ? 'Cambiar Imagen' : 'Seleccionar Imagen'}
             </Button>
           </Upload>
-          
+
           {isEditMode && formData?.imagen && (
             <div style={{ marginTop: '16px', textAlign: 'right' }}>
               <Button type="primary" onClick={skipImageStep}>
@@ -308,6 +309,20 @@ const MunicipioModal: React.FC<MunicipioModalProps> = ({
               <Option value="Veracruz">Veracruz</Option>
               <Option value="Yucatán">Yucatán</Option>
               <Option value="Zacatecas">Zacatecas</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label="Distrito"
+            name="distrito"
+            rules={[{ required: true, message: 'Seleccione un distritro' }]}
+          >
+            <Select placeholder="Seleccione el distrito al que corresponde">
+              {distritos.map((distrito) => (
+                <Option key={distrito} value={distrito}>
+                  {distrito}
+                </Option>
+              ))}
             </Select>
           </Form.Item>
 
