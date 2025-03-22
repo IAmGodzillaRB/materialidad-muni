@@ -1,47 +1,69 @@
 import React, { useState } from 'react';
 import { Table, Button, Tooltip, Image } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import useMunicipios from '../../hooks/useMunicipios';
-import MunicipioModal from '../../components/modals/MunicipioModal';
-import SearchBar from '../../components/SearchBar';
-import { Municipio } from '../../types/Municipio';
+import useMunicipios from '@/hooks/useMunicipios';
+import MunicipioModal from '@/components/modals/MunicipioModal';
+import SearchBar from '@/components/SearchBar';
+import { Municipio } from '@/types/Municipio';
 import {
   crearMunicipio,
   actualizarMunicipio,
   eliminarMunicipio,
   eliminarMunicipioDefinitivamente,
-} from '../../services/municipioService';
-import { mostrarExito, mostrarError } from '../../utils/notifications';
+} from '@/services/municipioService';
+import { mostrarExito, mostrarError } from '@/utils/notifications';
 
 const ControlMunicipios: React.FC = () => {
   const { filteredMunicipios, loading, error, handleSearch, refetch } = useMunicipios();
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [editingMunicipio, setEditingMunicipio] = useState<Municipio | null>(null);
 
-  const handleAddMunicipio = async (municipio: Municipio) => {
-    const fechaCreacion = {
-      ...municipio,
-      fechaCreacion: new Date().toISOString()
-    };
-    
+  const handleAddMunicipio = async (values: Partial<Municipio>, imagen?: File, hojaMembretada?: File) => {
     try {
-      await crearMunicipio(fechaCreacion); 
+      // Construir un objeto Municipio completo con valores por defecto
+      const municipioData: Municipio = {
+        vehiculosRef: values.vehiculosRef || [],
+        autoridadesRef: values.autoridadesRef || [],
+        id: '', // Generar un ID único si es necesario
+        denominacion: values.denominacion || '',
+        rfc: values.rfc || '',
+        tipoVialidad: values.tipoVialidad || '',
+        nombreVialidad: values.nombreVialidad || '',
+        numeroExterior: values.numeroExterior || '',
+        numeroInterior: values.numeroInterior || '',
+        nombreColonia: values.nombreColonia || '',
+        codigoPostal: values.codigoPostal || '',
+        municipio: values.municipio || '',
+        entidadFederativa: values.entidadFederativa || '',
+        distrito: values.distrito || '',
+        nombreLocalidad: values.nombreLocalidad || '',
+        entreCalle: values.entreCalle || '',
+        otraCalle: values.otraCalle || '',
+        fechaCreacion: new Date().toISOString(),
+        imagenURL: '', // URL de la imagen (se actualizará después de subir el archivo)
+        hojaMembretadaUrl: '', // URL de la hoja membretada (se actualizará después de subir el archivo)
+        eliminado: false,
+        ...values, // Sobrescribir con los valores proporcionados
+      };
+
+      // Llamar a crearMunicipio con el objeto completo y los archivos
+      await crearMunicipio(municipioData, imagen, hojaMembretada);
       await refetch();
       mostrarExito('Éxito', 'Municipio creado correctamente.');
-      setOpenModal(false); // Cerrar el modal después de agregar
+      setOpenModal(false);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       mostrarError('Error al crear municipio', errorMessage);
     }
   };
-  
 
-  const handleEditMunicipio = async (id: string, municipio: Partial<Municipio>) => {
+  const handleEditMunicipio = async (id: string, values: Partial<Municipio>, imagen?: File, hojaMembretada?: File) => {
     try {
-      await actualizarMunicipio(id, municipio);
-      await refetch();
+      // Actualizar el municipio con los archivos (imagen y hoja membretada)
+      await actualizarMunicipio(id, values, imagen, hojaMembretada);
+      await refetch(); // Refrescar la lista de municipios
       mostrarExito('Éxito', 'Municipio actualizado correctamente.');
-      setOpenModal(false); // Cerrar el modal después de editar
+      setOpenModal(false); // Cerrar el modal
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       mostrarError('Error al actualizar municipio', errorMessage);
@@ -50,8 +72,9 @@ const ControlMunicipios: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
+      // Eliminar el municipio (mover a la papelera)
       await eliminarMunicipio(id);
-      await refetch();
+      await refetch(); // Refrescar la lista de municipios
       mostrarExito('Éxito', 'Municipio movido a la papelera.');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
@@ -61,8 +84,9 @@ const ControlMunicipios: React.FC = () => {
 
   const handleDeletePermanently = async (id: string) => {
     try {
+      // Eliminar el municipio definitivamente
       await eliminarMunicipioDefinitivamente(id);
-      await refetch();
+      await refetch(); // Refrescar la lista de municipios
       mostrarExito('Éxito', 'Municipio eliminado definitivamente.');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
@@ -73,27 +97,28 @@ const ControlMunicipios: React.FC = () => {
   const columns = [
     {
       title: 'Imagen',
-      dataIndex: 'imagen',
-      key: 'imagen',
+      dataIndex: 'imagenURL',
+      key: 'imagenURL',
       width: 150,
-      render: (imagen: string) => (
-        <Image
-          src={imagen}
-          alt="Imagen del municipio"
-          width={120}
-          height={120}
-          style={{ objectFit: 'cover', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-          preview={{ mask: <div className="flex items-center justify-center text-white">Ver imagen</div> }}
-          placeholder={
-            <div className="flex items-center justify-center bg-gray-200 w-full h-full" style={{ height: '120px', width: '120px' }}>
-              Sin imagen
-            </div>
-          }
-        />
+      render: (imagenURL: string) => (
+        imagenURL ? (
+          <Image
+            src={imagenURL}
+            alt="Imagen del municipio"
+            width={120}
+            height={120}
+            style={{ objectFit: 'cover', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+            preview={{ mask: <div className="flex items-center justify-center text-white">Ver imagen</div> }}
+          />
+        ) : (
+          <div className="flex items-center justify-center bg-gray-200 w-full h-full" style={{ height: '120px', width: '120px' }}>
+            Sin imagen
+          </div>
+        )
       ),
     },
     {
-      title: 'Denominación Social',
+      title: 'Denominación',
       dataIndex: 'denominacion',
       key: 'denominacion',
       width: 200,
@@ -105,6 +130,21 @@ const ControlMunicipios: React.FC = () => {
       key: 'rfc',
       width: 150,
       render: (text: string) => <strong>{text}</strong>,
+    },
+    {
+      title: 'Hoja Membretada',
+      dataIndex: 'hojaMembretadaUrl',
+      key: 'hojaMembretadaUrl',
+      width: 150,
+      render: (url: string) => (
+        url ? (
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            Ver hoja membretada
+          </a>
+        ) : (
+          'Sin hoja membretada'
+        )
+      ),
     },
     {
       title: 'Dirección',
@@ -228,11 +268,43 @@ const ControlMunicipios: React.FC = () => {
         <MunicipioModal
           open={openModal}
           onClose={() => setOpenModal(false)}
-          onSubmit={(values) => {
+          onSubmit={(values, imagen, hojaMembretada) => {
+            // Validar que los campos obligatorios estén presentes
+            if (!values.denominacion || !values.rfc) {
+              mostrarError('Error', 'Denominación y RFC son campos obligatorios.');
+              return;
+            }
+
+            // Construir un objeto Municipio completo
+            const municipioData: Municipio = {
+              id: '', // Este campo será asignado por Firestore
+              denominacion: values.denominacion,
+              rfc: values.rfc,
+              tipoVialidad: values.tipoVialidad || '',
+              nombreVialidad: values.nombreVialidad || '',
+              numeroExterior: values.numeroExterior || '',
+              numeroInterior: values.numeroInterior || '',
+              nombreColonia: values.nombreColonia || '',
+              codigoPostal: values.codigoPostal || '',
+              municipio: values.municipio || '',
+              entidadFederativa: values.entidadFederativa || '',
+              distrito: values.distrito || '',
+              nombreLocalidad: values.nombreLocalidad || '',
+              entreCalle: values.entreCalle || '',
+              otraCalle: values.otraCalle || '',
+              fechaCreacion: new Date().toISOString(),
+              imagenURL: '',
+              hojaMembretadaUrl: '',
+              eliminado: false,
+              vehiculosRef: values.vehiculosRef || [],
+              autoridadesRef: values.autoridadesRef || [],
+              ...values, // Sobrescribir con los valores proporcionados
+            };
+
             if (editingMunicipio?.id) {
-              handleEditMunicipio(editingMunicipio.id, values);
+              handleEditMunicipio(editingMunicipio.id, municipioData, imagen, hojaMembretada);
             } else {
-              handleAddMunicipio(values);
+              handleAddMunicipio(municipioData, imagen, hojaMembretada);
             }
           }}
           formData={editingMunicipio}

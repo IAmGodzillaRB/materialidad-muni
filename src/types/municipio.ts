@@ -18,7 +18,8 @@ export interface Municipio {
   municipio: string;
   entreCalle?: string;
   otraCalle?: string;
-  imagen?: string;
+  imagenURL?: string;
   fechaCreacion: string;
   eliminado?: boolean;
+  hojaMembretadaUrl?: string;
 }

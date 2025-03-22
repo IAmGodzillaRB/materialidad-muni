@@ -14,6 +14,7 @@ import TipoAdquisicion from './Municipios/Adquisiciones/Adquisiciones';
 import Servicios from './Municipios/Adquisiciones/Tipos/Servicios';
 import Obras from './Municipios/Adquisiciones/Tipos/Obras';
 import Solicitudes from './Municipios/Adquisiciones/Solicitudes/Solicitudes';
+import ControlEmpresas from './Empresas/ControlEmpresas';
 
 
 const Home: React.FC = () => {
@@ -190,8 +191,9 @@ const Home: React.FC = () => {
               <Route path=":denominacion/detalles-municipio" element={<DetalleMunicipio />} />
               <Route path=":denominacion/detalles-municipio/autoridades" element={<Autoridades />} />
               <Route path=":denominacion/detalles-municipio/vehiculos" element={<Vehiculos />} />
+             
             </Route>
-
+            <Route path="control-empresas" element={<ControlEmpresas />} />
           </Routes>
         </div>
       </main>

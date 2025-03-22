@@ -3,6 +3,7 @@ import { getFirestore, query, where, getDocs, collection, deleteDoc, doc, addDoc
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
+
 // Configuración de Firebase para tu aplicación web
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,

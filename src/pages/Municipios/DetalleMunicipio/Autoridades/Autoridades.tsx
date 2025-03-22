@@ -76,7 +76,6 @@ const Autoridades: React.FC = () => {
           >
             <Table.Column title="Nombre" dataIndex="nombre" key="nombre" />
             <Table.Column title="Puesto" dataIndex="puesto" key="puesto" />
-            <Table.Column title="Teléfono" dataIndex="telefono" key="telefono" />
             <Table.Column
               title="Acciones"
               key="acciones"

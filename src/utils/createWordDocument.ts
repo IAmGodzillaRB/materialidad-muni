@@ -25,7 +25,7 @@ interface XmlData {
 
 const createWordDocument = (xmlData: XmlData) => {
     // Extraer datos del XML
-    const { fecha, emisor, conceptos, impuestos, total } = xmlData;
+    const { fecha, emisor, conceptos, impuestos, total, receptor } = xmlData;
 
     // Crear el contenido del documento
     const doc = new Document({
@@ -55,7 +55,7 @@ const createWordDocument = (xmlData: XmlData) => {
                     new Paragraph({
                         children: [
                             new TextRun({
-                                text: "SANTA MARÍA HUATULCO,",
+                                text: receptor.nombre,
                                 bold: true,
                             }),
                         ],

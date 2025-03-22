@@ -41,6 +41,15 @@ const Sidebar: React.FC<{
         </Link>
       ),
     },
+    {
+      key: 'control-empresas',
+      icon: <DashboardOutlined style={{ color: '#ffffff' }} />, // Color blanco para el ícono
+      label: (
+        <Link to="/home/control-empresas" onClick={onItemClick} style={{ color: '#ffffff' }}>
+          Empresas
+        </Link>
+      ),
+    },
   ];
 
   return (
